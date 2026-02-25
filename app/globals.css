@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
+/* Dark mode default, light mode opt-in */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --card: #1e293b;
+  --card-hover: #334155;
+  --border: #334155;
+  --muted: #64748b;
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-muted: rgba(245, 158, 11, 0.15);
+  --success: #22c55e;
+  --danger: #ef4444;
+  --input: #1e293b;
+  --input-border: #475569;
+  --input-focus: #f59e0b;
+}
+
+[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #d97706;
+  --accent-hover: #b45309;
+  --accent-muted: rgba(217, 119, 6, 0.1);
+  --success: #16a34a;
+  --danger: #dc2626;
+  --input: #ffffff;
+  --input-border: #cbd5e1;
+  --input-focus: #d97706;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-input: var(--input);
+  --color-input-border: var(--input-border);
+  --color-input-focus: var(--input-focus);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Skeleton animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
