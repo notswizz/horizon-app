@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, Users, Calendar } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, Calendar, Wrench } from "lucide-react";
 import clsx from "clsx";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/crew", label: "Crew", icon: Users },
   { href: "/schedule", label: "Schedule", icon: Calendar },
+  { href: "/sub", label: "Sub Work", icon: Wrench },
+  { href: "/crew", label: "Crew", icon: Users },
 ];
 
 export function Nav() {

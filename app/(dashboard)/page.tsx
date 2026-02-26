@@ -1,7 +1,8 @@
 "use client";
 
-import { useStats, useJobs } from "@/lib/hooks";
-import { GROUP_PIPELINE, STATUS_COLORS, ACTIVE_GROUPS } from "@/lib/constants";
+import { useMemo } from "react";
+import { useStats, useJobs, useSubItems } from "@/lib/hooks";
+import { GROUP_PIPELINE, STATUS_COLORS, ACTIVE_GROUPS, SUB_GROUP_PIPELINE } from "@/lib/constants";
 import { ProgramBadge } from "@/components/program-badge";
 import { Skeleton } from "@/components/loading-skeleton";
 import { ActivityFeed } from "@/components/activity-feed";
@@ -17,6 +18,7 @@ import {
   TrendingUp,
   Clock,
   Zap,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -41,7 +43,18 @@ function formatRelative(dateStr: string) {
 export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useStats();
   const { data: jobs, isLoading: jobsLoading } = useJobs();
+  const { data: subItems, isLoading: subLoading } = useSubItems();
   const { openJob } = useJobDrawer();
+
+  // Sub work group counts
+  const subGroupCounts = useMemo(() => {
+    if (!subItems) return {};
+    const counts: Record<string, number> = {};
+    for (const item of subItems) {
+      counts[item.group] = (counts[item.group] || 0) + 1;
+    }
+    return counts;
+  }, [subItems]);
 
   const activeJobs = jobs?.filter((j) => ACTIVE_GROUPS.has(j.group)) ?? [];
 
@@ -179,6 +192,54 @@ export default function DashboardPage() {
         {/* Activity Feed */}
         <ActivityFeed collapsible collapsibleOnMobileOnly />
       </div>
+
+      {/* ── Subcontractor Work Summary ─────────────────── */}
+      <section className="bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <div className="flex items-center gap-2">
+            <Wrench className="w-4 h-4 text-muted" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted">Sub Work</h2>
+          </div>
+          <Link
+            href="/sub"
+            className="text-xs text-accent font-medium hover:underline flex items-center gap-1"
+          >
+            View all <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <div className="px-5 pb-5">
+          {subLoading ? (
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              {SUB_GROUP_PIPELINE.map((grp) => {
+                const count = subGroupCounts[grp.id] ?? 0;
+                return (
+                  <Link
+                    key={grp.id}
+                    href="/sub"
+                    className={clsx(
+                      "flex flex-col items-center justify-center p-3 rounded-xl border border-border hover:border-border transition-colors hover:bg-card-hover",
+                      count > 0 ? grp.bg : "bg-background"
+                    )}
+                  >
+                    <span className={clsx("text-lg font-bold", count > 0 ? grp.text : "text-muted/40")}>
+                      {count}
+                    </span>
+                    <span className="text-[10px] text-muted font-medium text-center leading-tight mt-0.5">
+                      {grp.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ── Scheduled Work ───────────────────────────────── */}
       <section className="bg-card rounded-2xl border border-border overflow-hidden">

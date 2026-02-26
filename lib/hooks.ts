@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR, { mutate } from "swr";
-import type { Job, CrewMember, DashboardStats, ActivityEvent } from "./monday";
+import type { Job, CrewMember, DashboardStats, ActivityEvent, SubItem } from "./monday";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -37,6 +37,39 @@ export function useActivity() {
     revalidateOnFocus: false,
     refreshInterval: 60000,
   });
+}
+
+export function useSubItems() {
+  return useSWR<SubItem[]>("/api/monday/sub", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
+}
+
+export function useSubItem(id: string) {
+  return useSWR<SubItem>(id ? `/api/monday/sub/${id}` : null, fetcher, {
+    revalidateOnFocus: false,
+  });
+}
+
+export async function updateSubItem(
+  subId: string,
+  columnId: string,
+  value: string
+) {
+  const res = await fetch(`/api/monday/sub/${subId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ columnId, value }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to update (${res.status})`);
+  }
+
+  mutate(`/api/monday/sub/${subId}`);
+  mutate("/api/monday/sub");
 }
 
 export async function updateJob(

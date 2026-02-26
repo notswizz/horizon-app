@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Check, X, Pencil, Loader2 } from "lucide-react";
 import clsx from "clsx";
-import { updateJob } from "@/lib/hooks";
+import { updateJob, updateSubItem } from "@/lib/hooks";
 import { STATUS_COLORS } from "@/lib/constants";
 
 interface EditableFieldProps {
@@ -15,6 +15,7 @@ interface EditableFieldProps {
   multiline?: boolean;
   type?: "text" | "date";
   className?: string;
+  updateEndpoint?: string;
 }
 
 export function EditableField({
@@ -25,6 +26,7 @@ export function EditableField({
   multiline = false,
   type = "text",
   className,
+  updateEndpoint,
 }: EditableFieldProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -55,7 +57,8 @@ export function EditableField({
 
     setSaving(true);
     try {
-      await updateJob(jobId, columnId, draft);
+      const updater = updateEndpoint === "/api/monday/sub" ? updateSubItem : updateJob;
+      await updater(jobId, columnId, draft);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       setEditing(false);

@@ -1,4 +1,4 @@
-import { JOBS_BOARD_ID, CREW_BOARD_ID, JOB_COLUMNS, CREW_COLUMNS } from "./constants";
+import { JOBS_BOARD_ID, CREW_BOARD_ID, SUB_BOARD_ID, JOB_COLUMNS, CREW_COLUMNS, SUB_COLUMNS } from "./constants";
 
 const MONDAY_API_URL = "https://api.monday.com/v2";
 
@@ -80,6 +80,27 @@ export interface ActivityEvent {
   timestamp: string;
   statusFrom?: string;
   statusTo?: string;
+}
+
+export interface SubItem {
+  id: string;
+  name: string;
+  group: string;
+  groupTitle: string;
+  phone: string;
+  email: string;
+  address: string;
+  workType: string;
+  scope: string;
+  wiringComplete: string;
+  ngApproval: string;
+  goodToSubmit: string;
+  companyCamLink: string;
+  scheduledDate: string;
+  completionDate: string;
+  notes: string;
+  relatedJobIds: string[];
+  updatedAt: string;
 }
 
 // ─── GraphQL Client ──────────────────────────────────────────────────
@@ -417,5 +438,130 @@ export async function fetchCrew(): Promise<CrewMember[]> {
       role: getColumnText(item.column_values, CREW_COLUMNS.ROLE),
       availability: getColumnText(item.column_values, CREW_COLUMNS.AVAILABILITY),
     })) ?? []
+  );
+}
+
+// ─── Sub Work ────────────────────────────────────────────────────────
+
+export function itemToSubItem(item: MondayItem): SubItem {
+  const cols = item.column_values;
+  return {
+    id: item.id,
+    name: item.name,
+    group: item.group.id,
+    groupTitle: item.group.title,
+    phone: getColumnText(cols, SUB_COLUMNS.PHONE),
+    email: getColumnText(cols, SUB_COLUMNS.EMAIL),
+    address: getColumnText(cols, SUB_COLUMNS.ADDRESS),
+    workType: getColumnText(cols, SUB_COLUMNS.WORK_TYPE),
+    scope: parseLongText(cols, SUB_COLUMNS.SCOPE),
+    wiringComplete: getColumnText(cols, SUB_COLUMNS.WIRING_COMPLETE),
+    ngApproval: getColumnText(cols, SUB_COLUMNS.NG_APPROVAL),
+    goodToSubmit: getColumnText(cols, SUB_COLUMNS.GOOD_TO_SUBMIT),
+    companyCamLink: parseLink(cols, SUB_COLUMNS.COMPANYCAM_LINK),
+    scheduledDate: getColumnText(cols, SUB_COLUMNS.SCHEDULED_DATE),
+    completionDate: getColumnText(cols, SUB_COLUMNS.COMPLETION_DATE),
+    notes: parseLongText(cols, SUB_COLUMNS.NOTES),
+    relatedJobIds: parseBoardRelation(cols, SUB_COLUMNS.RELATED_JOB),
+    updatedAt: item.updated_at,
+  };
+}
+
+export async function fetchAllSubItems(): Promise<SubItem[]> {
+  const data = await mondayQuery<{
+    boards: { items_page: { items: MondayItem[] } }[];
+  }>(`query {
+    boards(ids: [${SUB_BOARD_ID}]) {
+      items_page(limit: 500) {
+        items {
+          id
+          name
+          group { id title }
+          updated_at
+          column_values {
+            id
+            text
+            value
+            type
+          }
+        }
+      }
+    }
+  }`);
+
+  return data.boards[0]?.items_page.items.map((item) => itemToSubItem(item)) ?? [];
+}
+
+export async function fetchSubItem(itemId: string): Promise<SubItem | null> {
+  const data = await mondayQuery<{
+    items: MondayItem[];
+  }>(`query {
+    items(ids: [${itemId}]) {
+      id
+      name
+      group { id title }
+      updated_at
+      column_values {
+        id
+        text
+        value
+        type
+      }
+    }
+  }`);
+
+  const item = data.items[0];
+  if (!item) return null;
+  return itemToSubItem(item);
+}
+
+export async function updateSubColumn(
+  itemId: string,
+  columnId: string,
+  value: string
+): Promise<void> {
+  await mondayQuery(
+    `mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: String!) {
+      change_simple_column_value(
+        board_id: $boardId,
+        item_id: $itemId,
+        column_id: $columnId,
+        value: $value
+      ) {
+        id
+      }
+    }`,
+    {
+      boardId: SUB_BOARD_ID,
+      itemId,
+      columnId,
+      value,
+    }
+  );
+}
+
+export async function updateSubColumnJSON(
+  itemId: string,
+  columnId: string,
+  value: unknown
+): Promise<void> {
+  const jsonValue = JSON.stringify(value);
+  await mondayQuery(
+    `mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: JSON!) {
+      change_column_value(
+        board_id: $boardId,
+        item_id: $itemId,
+        column_id: $columnId,
+        value: $value
+      ) {
+        id
+      }
+    }`,
+    {
+      boardId: SUB_BOARD_ID,
+      itemId,
+      columnId,
+      value: jsonValue,
+    }
   );
 }

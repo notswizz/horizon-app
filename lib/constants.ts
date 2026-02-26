@@ -113,10 +113,49 @@ export const CREW_COLUMNS = {
   AVAILABILITY: "color_mm0xphvt",
 } as const;
 
+// ─── Sub Work Board ──────────────────────────────────────
+export const SUB_BOARD_ID = "18401794803";
+
+export const SUB_COLUMNS = {
+  PHONE: "text_mm0ybaxa",
+  EMAIL: "text_mm0yn10k",
+  ADDRESS: "text_mm0y5xrk",
+  WORK_TYPE: "color_mm0y88zh",
+  SCOPE: "long_text_mm0yb5ep",
+  WIRING_COMPLETE: "color_mm0yryr0",
+  NG_APPROVAL: "color_mm0ymj51",
+  GOOD_TO_SUBMIT: "color_mm0ynqpv",
+  COMPANYCAM_LINK: "link_mm0y708b",
+  SCHEDULED_DATE: "date_mm0y95cq",
+  COMPLETION_DATE: "date_mm0yyva3",
+  NOTES: "long_text_mm0ya22k",
+  RELATED_JOB: "board_relation_mm0yy7bq",
+} as const;
+
+export const SUB_GROUPS = {
+  WH_READY: "group_mm0yxpae",
+  WH_WAITING: "group_mm0ypnj9",
+  WH_NEXTGEN: "group_mm0yst82",
+  ELEC_PRE_SUB: "group_mm0y47aw",
+  ELEC_APPLIED: "group_mm0ynd3r",
+  COMPLETED: "group_mm0ytpx9",
+  CANCELLED: "group_mm0ycv2t",
+} as const;
+
+export const SUB_GROUP_PIPELINE: { id: string; label: string; icon: string; bg: string; text: string; dot: string }[] = [
+  { id: SUB_GROUPS.WH_READY, label: "WH Ready", icon: "🔥", bg: "bg-green-500/20", text: "text-green-400", dot: "bg-green-400" },
+  { id: SUB_GROUPS.WH_WAITING, label: "WH Waiting", icon: "⏳", bg: "bg-amber-500/20", text: "text-amber-400", dot: "bg-amber-400" },
+  { id: SUB_GROUPS.WH_NEXTGEN, label: "WH NextGen", icon: "📋", bg: "bg-orange-500/20", text: "text-orange-400", dot: "bg-orange-400" },
+  { id: SUB_GROUPS.ELEC_PRE_SUB, label: "Elec Pre-Sub", icon: "⚡", bg: "bg-blue-500/20", text: "text-blue-400", dot: "bg-blue-400" },
+  { id: SUB_GROUPS.ELEC_APPLIED, label: "Elec Applied", icon: "📝", bg: "bg-violet-500/20", text: "text-violet-400", dot: "bg-violet-400" },
+  { id: SUB_GROUPS.COMPLETED, label: "Completed", icon: "✅", bg: "bg-emerald-500/20", text: "text-emerald-400", dot: "bg-emerald-400" },
+];
+
 // Navigation items
 export const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "LayoutDashboard" },
   { href: "/jobs", label: "Jobs", icon: "Briefcase" },
-  { href: "/crew", label: "Crew", icon: "Users" },
   { href: "/schedule", label: "Schedule", icon: "Calendar" },
+  { href: "/sub", label: "Sub Work", icon: "Wrench" },
+  { href: "/crew", label: "Crew", icon: "Users" },
 ] as const;

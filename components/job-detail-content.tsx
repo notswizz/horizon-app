@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useJob, useJobs } from "@/lib/hooks";
+import { useJob, useJobs, useSubItems } from "@/lib/hooks";
 import { ALL_STATUSES, JOB_COLUMNS, STATUS_COLORS } from "@/lib/constants";
 import { ProgramBadge } from "@/components/program-badge";
 import { EditableField, EditableStatus } from "@/components/editable-field";
 import { Skeleton } from "@/components/loading-skeleton";
+import { useSubDrawer } from "@/components/sub-drawer";
 import {
   Phone,
   Mail,
@@ -21,6 +22,8 @@ import {
   ClipboardCheck,
   Wrench,
   ArrowRightLeft,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -38,6 +41,14 @@ export function JobDetailContent({
 }) {
   const { data: job, isLoading } = useJob(jobId);
   const { data: allJobs } = useJobs();
+  const { data: subItems } = useSubItems();
+  const { openSub } = useSubDrawer();
+
+  const linkedSubItems = subItems?.filter(
+    (s) =>
+      s.relatedJobIds.includes(jobId) ||
+      (job && s.name && (s.name === job.homeowner || s.name === job.name))
+  ) ?? [];
 
   const relatedJobs =
     allJobs?.filter(
@@ -224,6 +235,53 @@ export function JobDetailContent({
                     )}
                     <ChevronRight className="w-4 h-4" />
                   </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Linked Sub Work ──────────────────────────────── */}
+      {linkedSubItems.length > 0 && (
+        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+          <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+            <Wrench className="w-4 h-4 text-muted" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted">Sub Work</h2>
+          </div>
+          <div className="px-3 pb-3 space-y-1">
+            {linkedSubItems.map((si) => {
+              const typeColors: Record<string, string> = {
+                "Water Heater": "bg-blue-500/20 text-blue-400",
+                "Electrician": "bg-amber-500/20 text-amber-400",
+              };
+              return (
+                <button
+                  key={si.id}
+                  type="button"
+                  onClick={() => openSub(si.id)}
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-card-hover transition-colors w-full text-left group"
+                >
+                  <span className={clsx(
+                    "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold shrink-0",
+                    typeColors[si.workType] || "bg-gray-500/20 text-gray-400"
+                  )}>
+                    {si.workType || "Sub"}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{si.scope || si.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <SubStatusDot value={si.wiringComplete} label="W" />
+                      <SubStatusDot value={si.ngApproval} label="NG" />
+                      {si.scheduledDate && (
+                        <span className="text-[10px] text-muted flex items-center gap-0.5">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(si.scheduledDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted/30 group-hover:text-muted shrink-0" />
                 </button>
               );
             })}
@@ -506,6 +564,20 @@ function formatRelativeDate(dateStr: string) {
   if (diffHr < 24) return `${diffHr}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function SubStatusDot({ value, label }: { value: string; label: string }) {
+  const isDone = value === "Done";
+  const isStuck = value === "Stuck";
+  return (
+    <span className={clsx(
+      "inline-flex items-center gap-0.5 text-[10px] font-medium",
+      isDone ? "text-green-400" : isStuck ? "text-red-400" : "text-muted/40"
+    )}>
+      {isDone ? <CheckCircle2 className="w-3 h-3" /> : isStuck ? <XCircle className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-muted/30 inline-block" />}
+      {label}
+    </span>
+  );
 }
 
 function DetailSkeleton() {
